@@ -6,7 +6,7 @@ from django.db import models
 User = get_user_model()
 
 
-class BasedModel(models.Model):
+class PublishedModel(models.Model):
     is_published = models.BooleanField(
         default=True,
         verbose_name='Опубликовано',
@@ -21,7 +21,7 @@ class BasedModel(models.Model):
         abstract = True
 
 
-class Location(BasedModel):
+class Location(PublishedModel):
     name = models.CharField(
         max_length=256,
         verbose_name='Название места'
@@ -35,7 +35,7 @@ class Location(BasedModel):
         return self.name[:settings.REPRESENTATION_LENGTH]
 
 
-class Category(BasedModel):
+class Category(PublishedModel):
     title = models.CharField(
         max_length=256,
         verbose_name='Заголовок'
@@ -59,7 +59,7 @@ class Category(BasedModel):
         return self.title[:settings.REPRESENTATION_LENGTH]
 
 
-class Post(BasedModel):
+class Post(PublishedModel):
     title = models.CharField(
         max_length=256,
         verbose_name='Заголовок'
@@ -106,7 +106,7 @@ class Post(BasedModel):
         return self.title[:settings.REPRESENTATION_LENGTH]
 
 
-class Comment(BasedModel):
+class Comment(PublishedModel):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
         User,

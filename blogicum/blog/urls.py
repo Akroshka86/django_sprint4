@@ -1,8 +1,8 @@
-from django.urls import path, include
+from django.urls import include, path
+
 from . import views
 
 app_name = 'blog'
-
 
 posts = [
     path('create/', views.create_post, name='create_post'),
@@ -21,7 +21,6 @@ posts = [
         name='delete_comment',
     ),
 ]
-
 
 profile = [
     path('edit/', views.edit_profile, name='edit_profile'),

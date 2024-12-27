@@ -9,30 +9,30 @@ from .service import get_paginator, get_posts
 
 
 def index(request):
-    post_list = get_posts(Post.objects.select_related("author", "category")).order_by(
-        "-pub_date"
-    )
+    post_list = get_posts(Post.objects.select_related(
+        'author', 'category')).order_by('-pub_date')
     page_obj = get_paginator(request, post_list)
-    return render(request, "blog/index.html", {"page_obj": page_obj})
+    return render(request, 'blog/index.html', {'page_obj': page_obj})
 
 
 def post_detail(request, post_id):
     posts = get_object_or_404(Post, id=post_id)
     if request.user != posts.author:
         posts = get_object_or_404(get_posts(Post.objects), id=post_id)
-    comments = posts.comments.order_by("created_at")
+    comments = posts.comments.order_by('created_at')
     form = CommentForm()
-    return render(
-        request, "blog/detail.html", {"post": posts, "form": form, "comments": comments}
-    )
+    return render(request, 'blog/detail.html',
+                  {'post': posts, 'form': form, 'comments': comments})
 
 
 def category_posts(request, category_slug):
-    category = get_object_or_404(Category, slug=category_slug, is_published=True)
-    post_list = get_posts(category.posts.select_related("author")).order_by("-pub_date")
+    category = get_object_or_404(
+        Category, slug=category_slug, is_published=True)
+    post_list = get_posts(category.posts.select_related('author')
+                          ).order_by('-pub_date')
     page_obj = get_paginator(request, post_list)
-    context = {"category": category, "page_obj": page_obj}
-    return render(request, "blog/category.html", context)
+    context = {'category': category, 'page_obj': page_obj}
+    return render(request, 'blog/category.html', context)
 
 
 @login_required
@@ -42,9 +42,9 @@ def create_post(request):
         post = form.save(commit=False)
         post.author = request.user
         post.save()
-        return redirect("blog:profile", request.user)
-    context = {"form": form}
-    return render(request, "blog/create.html", context)
+        return redirect('blog:profile', request.user)
+    context = {'form': form}
+    return render(request, 'blog/create.html', context)
 
 
 def profile(request, username):
@@ -52,20 +52,24 @@ def profile(request, username):
     now = timezone.now()
     if user.is_authenticated:
         posts_list = (
-            user.posts.annotate(comment_count=Count("comments"))
-            .select_related("author")
-            .order_by("-pub_date")
+            user.posts
+            .annotate(comment_count=Count('comments'))
+            .select_related('author')
+            .order_by('-pub_date')
         )
     else:
         posts_list = (
-            user.posts.filter(is_published=True, pub_date__lte=now)
-            .annotate(comment_count=Count("comments"))
-            .select_related("author")
-            .order_by("-pub_date")
+            user.posts.filter(
+                is_published=True,
+                pub_date__lte=now
+            )
+            .annotate(comment_count=Count('comments'))
+            .select_related('author')
+            .order_by('-pub_date')
         )
     page_obj = get_paginator(request, posts_list)
-    context = {"profile": user, "page_obj": page_obj}
-    return render(request, "blog/profile.html", context)
+    context = {'profile': user, 'page_obj': page_obj}
+    return render(request, 'blog/profile.html', context)
 
 
 @login_required
@@ -73,36 +77,37 @@ def edit_profile(request):
     form = ProfileEditForm(request.POST, instance=request.user)
     if form.is_valid():
         form.save()
-        return redirect("blog:profile", request.user)
-    return render(request, "blog/user.html", {"form": form})
+        return redirect('blog:profile', request.user)
+    return render(request, 'blog/user.html', {'form': form})
 
 
 @login_required
 def edit_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.user != post.author:
-        return redirect("blog:post_detail", post_id)
-    form = PostForm(request.POST, files=request.FILES or None, instance=post)
+        return redirect('blog:post_detail', post_id)
+    form = PostForm(
+        request.POST, files=request.FILES or None, instance=post)
     if form.is_valid():
         post.save()
-        return redirect("blog:post_detail", post_id)
+        return redirect('blog:post_detail', post_id)
     form = PostForm(instance=post)
-    context = {"form": form}
-    return render(request, "blog/create.html", context)
+    context = {'form': form}
+    return render(request, 'blog/create.html', context)
 
 
 @login_required
 def delete_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.user != post.author:
-        return redirect("blog:post_detail", post_id)
-    if request.method == "POST":
+        return redirect('blog:post_detail', post_id)
+    if request.method == 'POST':
         form = PostForm(request.POST or None, instance=post)
         post.delete()
-        return redirect("blog:index")
+        return redirect('blog:index')
     form = PostForm(instance=post)
-    context = {"form": form}
-    return render(request, "blog/create.html", context)
+    context = {'form': form}
+    return render(request, 'blog/create.html', context)
 
 
 @login_required
@@ -114,30 +119,30 @@ def add_comment(request, post_id):
         comment.post = post
         comment.author = request.user
         comment.save()
-    return redirect("blog:post_detail", post_id)
+    return redirect('blog:post_detail', post_id)
 
 
 @login_required
 def edit_comment(request, post_id, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
     if request.user != comment.author:
-        return redirect("blog:post_detail", post_id)
+        return redirect('blog:post_detail', post_id)
     form = CommentForm(request.POST or None, instance=comment)
     if form.is_valid():
         form.save()
-        return redirect("blog:post_detail", post_id)
+        return redirect('blog:post_detail', post_id)
     form = CommentForm(instance=comment)
-    context = {"form": form, "comment": comment}
-    return render(request, "blog/comment.html", context)
+    context = {'form': form, 'comment': comment}
+    return render(request, 'blog/comment.html', context)
 
 
 @login_required
 def delete_comment(request, post_id, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
     if request.user != comment.author:
-        return redirect("blog:post_detail", post_id)
+        return redirect('blog:post_detail', post_id)
     if request.method == "POST":
         comment.delete()
-        return redirect("blog:post_detail", post_id)
-    context = {"comment": comment}
-    return render(request, "blog/comment.html", context)
+        return redirect('blog:post_detail', post_id)
+    context = {'comment': comment}
+    return render(request, 'blog/comment.html', context)
