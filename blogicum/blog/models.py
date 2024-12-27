@@ -1,13 +1,12 @@
-from django.db import models
-from django.contrib.auth import get_user_model
-from django.utils import timezone
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.db import models
 
 
 User = get_user_model()
 
 
-class BaseModel(models.Model):
+class BasedModel(models.Model):
     is_published = models.BooleanField(
         default=True,
         verbose_name='Опубликовано',
@@ -22,26 +21,33 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class Location(BaseModel):
-    name = models.CharField(max_length=256, verbose_name='Название места')
+class Location(BasedModel):
+    name = models.CharField(
+        max_length=256,
+        verbose_name='Название места'
+    )
 
     class Meta:
         verbose_name = 'местоположение'
         verbose_name_plural = 'Местоположения'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name[:settings.REPRESENTATION_LENGTH]
 
 
-class Category(BaseModel):
-    title = models.CharField(max_length=256, verbose_name='Заголовок')
+class Category(BasedModel):
+    title = models.CharField(
+        max_length=256,
+        verbose_name='Заголовок'
+    )
     description = models.TextField(verbose_name='Описание')
     slug = models.SlugField(
+        max_length=64,
         unique=True,
         verbose_name='Идентификатор',
         help_text=(
-            'Идентификатор страницы для URL;'
-            ' разрешены символы латиницы, цифры, дефис и подчёркивание.'
+            'Идентификатор страницы для URL; '
+            'разрешены символы латиницы, цифры, дефис и подчёркивание.'
         )
     )
 
@@ -49,12 +55,15 @@ class Category(BaseModel):
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
 
-    def __str__(self):
-        return self.title
+    def __str__(self) -> str:
+        return self.title[:settings.REPRESENTATION_LENGTH]
 
 
-class Post(BaseModel):
-    title = models.CharField(max_length=256, verbose_name='Заголовок')
+class Post(BasedModel):
+    title = models.CharField(
+        max_length=256,
+        verbose_name='Заголовок'
+    )
     text = models.TextField(verbose_name='Текст')
     image = models.ImageField(
         verbose_name='Изображение',
@@ -63,56 +72,57 @@ class Post(BaseModel):
         blank=True
     )
     pub_date = models.DateTimeField(
-        default=timezone.now,
         verbose_name='Дата и время публикации',
-        help_text=(
-            'Если установить дату и время в'
-            ' будущем — можно делать отложенные публикации.'
-        )
+        help_text='Если установить дату и время в будущем — '
+                  'можно делать отложенные публикации.'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='posts',
-        verbose_name='Автор публикации'
+        verbose_name='Автор публикации',
+        related_name='posts'
     )
     location = models.ForeignKey(
         Location,
         on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        verbose_name='Местоположение',
         related_name='posts',
-        verbose_name='Местоположение'
+        null=True,
+        blank=True
     )
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='posts',
-        verbose_name='Категория'
+        verbose_name='Категория',
+        related_name='posts'
     )
 
     class Meta:
         verbose_name = 'публикация'
         verbose_name_plural = 'Публикации'
 
-    def __str__(self):
-        return self.title
+    def __str__(self) -> str:
+        return self.title[:settings.REPRESENTATION_LENGTH]
 
 
-class Comment(BaseModel):
+class Comment(BasedModel):
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='comments',
-        verbose_name='Автор'
+        verbose_name='Автор',
+        related_name='comments'
     )
     post = models.ForeignKey(
         Post,
         on_delete=models.CASCADE,
-        related_name='comments',
-        verbose_name='Комментарий'
+        verbose_name='Комментарий',
+        related_name='comments'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Добавлено'
     )
 
     class Meta:
@@ -122,4 +132,3 @@ class Comment(BaseModel):
 
     def __str__(self) -> str:
         return self.text[:settings.REPRESENTATION_LENGTH]
-
